@@ -10,10 +10,13 @@ def generate_mcar_missing_values(data: pd.DataFrame, percentage: float) -> pd.Da
     Output:
     A dataframe with missing values at specified misisngness percentage.
     """
-    data_shape = data.shape
+    new_data = data.copy()
 
-    mask = (np.random.rand(data_shape[0],data_shape[1]) < percentage)
+    data_shape = new_data.shape
 
-    data[mask] = np.nan
-    return data
+    mask = (np.random.rand(data_shape[0],data_shape[1]) <= percentage)
+  
+    new_data.mask(mask, np.nan,inplace=True)
+    
+    return new_data
 
