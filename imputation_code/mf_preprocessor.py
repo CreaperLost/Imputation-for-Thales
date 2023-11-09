@@ -6,17 +6,24 @@ from typing import Optional
 from pprint import pprint
 import autosklearn.classification
 from sklearn.impute import SimpleImputer
-from mf import IterativeImputer
+from imputation_code.mf import IterativeImputer
+#from sklearn.impute import IterativeImputer
+from sklearn.ensemble import RandomForestRegressor
+from ConfigSpace.hyperparameters import (
+    UniformIntegerHyperparameter,
+    CategoricalHyperparameter,
+)
 
-class mf_reprocessing(AutoSklearnPreprocessingAlgorithm):
-    def __init__(self, **kwargs):
+class MissForestProcessor(AutoSklearnPreprocessingAlgorithm):
+    def __init__(self,max_depth, **kwargs):
+        self.max_depth = max_depth
         """This preprocessors does not change the data"""
         # Some internal checks makes sure parameters are set
         for key, val in kwargs.items():
             setattr(self, key, val)
 
     def fit(self, X, Y=None):
-        self.imputer = IterativeImputer().fit(X)
+        self.imputer = IterativeImputer(parameters={'max_depth':self.max_depth}).fit(X)
         return self
 
     def transform(self, X):
@@ -42,4 +49,7 @@ class mf_reprocessing(AutoSklearnPreprocessingAlgorithm):
     def get_hyperparameter_search_space(
         feat_type: Optional[FEAT_TYPE_TYPE] = None, dataset_properties=None
     ):
-        return ConfigurationSpace()  # Return an empty configuration as there is None
+        cs = ConfigurationSpace()
+        solver = CategoricalHyperparameter(name="max_depth", choices=[10,20])
+        cs.add_hyperparameters([solver])
+        return cs  # Return an empty configuration as there is None

@@ -8,7 +8,7 @@ import autosklearn.classification
 from sklearn.impute import SimpleImputer
 
 
-class mm_reprocessing(AutoSklearnPreprocessingAlgorithm):
+class MeanModePreprocessor(AutoSklearnPreprocessingAlgorithm):
     def __init__(self, **kwargs):
         """This preprocessors does not change the data"""
         # Some internal checks makes sure parameters are set
@@ -26,8 +26,8 @@ class mm_reprocessing(AutoSklearnPreprocessingAlgorithm):
     @staticmethod
     def get_properties(dataset_properties=None):
         return {
-            "shortname": "NoPreprocessing",
-            "name": "NoPreprocessing",
+            "shortname": "MeanModeImputation",
+            "name": "MeanModeImputation",
             "handles_regression": True,
             "handles_classification": True,
             "handles_multiclass": True,

@@ -220,7 +220,7 @@ class IterativeImputer(_BaseImputer):
         Journal of the Royal Statistical Society 22(2): 302-306.
         <https://www.jstor.org/stable/2984099>`_
     """
-    def __init__(self,parameters: dict, names: list, vmaps: dict,
+    def __init__(self,parameters: dict,
                  *,
                  missing_values=np.nan,
                  sample_posterior=False,
@@ -237,20 +237,15 @@ class IterativeImputer(_BaseImputer):
             add_indicator=add_indicator
         )
 
-        self.names = names
-        self.new_names = names
-        self.vmaps = vmaps
-        self.new_vmaps = vmaps
-
-
+    
         #The indexes for categorical features in feature list.
-        self.catindx = [names.index(i) for i in vmaps.keys()]
-        self.numindx = [names.index(i) for i in names if i not in vmaps.keys()]
+        #self.catindx = [names.index(i) for i in vmaps.keys()]
+        #self.numindx = [names.index(i) for i in names if i not in vmaps.keys()]
         
         self.max_iter = parameters.get("max_iter",10)
         self.decreasing = parameters.get("decreasing",False)
         self.n_estimators = parameters.get("n_estimators",100)
-        self.criterion = parameters.get("criterion",('squared_error', 'gini'))
+        self.criterion = parameters.get("criterion",('mse', 'gini'))
         self.max_depth = parameters.get("max_depth",20)
         self.min_samples_split = parameters.get("min_samples_split",2)
         self.min_samples_leaf = parameters.get("min_samples_leaf",1)
@@ -328,8 +323,7 @@ class IterativeImputer(_BaseImputer):
                              "estimator should be passed in.")
 
         if estimator is None:
-            if feat_idx in self.numindx:
-                estimator = clone(self.estimatorRegression(n_estimators=self.n_estimators,
+            estimator = clone(self.estimatorRegression(n_estimators=self.n_estimators,
                     criterion=self.criterion[0],
                     max_depth=self.max_depth,
                     min_samples_split=self.min_samples_split,
@@ -344,22 +338,7 @@ class IterativeImputer(_BaseImputer):
                     random_state=self.random_state,
                     verbose=self.verbose,
                     warm_start=self.warm_start))
-            else:
-                estimator = clone(self.estimatorClassification(n_estimators=self.n_estimators,
-                    criterion=self.criterion[1],
-                    max_depth=self.max_depth,
-                    min_samples_split=self.min_samples_split,
-                    min_samples_leaf=self.min_samples_leaf,
-                    min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-                    max_features=self.max_features,
-                    max_leaf_nodes=self.max_leaf_nodes,
-                    min_impurity_decrease=self.min_impurity_decrease,
-                    bootstrap=self.bootstrap,
-                    oob_score=self.oob_score,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                    verbose=self.verbose,
-                    warm_start=self.warm_start))
+            
 
         missing_row_mask = mask_missing_values[:, feat_idx]
         if fit_mode:
@@ -556,31 +535,16 @@ class IterativeImputer(_BaseImputer):
 
         X_filled = X.copy()
 
-        valid_mask_stats = np.zeros(len(self.catindx)+len(self.numindx))
+        valid_mask_stats = np.zeros(X_filled.shape[1])
 
         #Code by George Paterakis
         #Mean Impute continous , Mode Impute Categorical
 
-
-        #Mean Impute
-        if len(self.numindx) >0 :
-            if self.initial_imputer_Mean is None:
-                self.initial_imputer_Mean = SimpleImputer(missing_values=self.missing_values,strategy='mean')
-                X_filled[:,self.numindx] = self.initial_imputer_Mean.fit_transform(X[:,self.numindx])
-            else:
-                X_filled[:,self.numindx] = self.initial_imputer_Mean.transform(X[:,self.numindx])
-            valid_mask_stats[self.numindx] = self.initial_imputer_Mean.statistics_
+        self.initial_imputer_Mean = SimpleImputer(missing_values=self.missing_values,strategy='mean')
+        X_filled = self.initial_imputer_Mean.fit_transform(X)
+        valid_mask_stats = self.initial_imputer_Mean.statistics_
            
-        
-        #Mode Impute
-        if len(self.catindx) >0 :
-            if self.initial_imputer_Mode is None:
-                self.initial_imputer_Mode = SimpleImputer(missing_values=self.missing_values,strategy='most_frequent')
-                X_filled[:,self.catindx] = self.initial_imputer_Mode.fit_transform(X[:,self.catindx])
-            else:
-                X_filled[:,self.catindx] = self.initial_imputer_Mode.transform(X[:,self.catindx])
-            valid_mask_stats[self.catindx] = self.initial_imputer_Mode.statistics_
-            
+
         #Create the mask by taking into account each of the types.
         valid_mask = np.flatnonzero(np.logical_not(np.isnan(valid_mask_stats)))
         Xt = X[:, valid_mask]
@@ -669,12 +633,6 @@ class IterativeImputer(_BaseImputer):
         self.imputation_sequence_ = []
 
         self.initial_imputer_Mean = None
-        self.initial_imputer_Mode = None
-
-        #Code by George Paterakis
-        #List of Lists -->> np.array with samples as rows and features as columns.
-        X=np.transpose(np.array(X))
-
 
         X, Xt, mask_missing_values, complete_mask = (
             self._initial_imputation(X, in_fit=True))
@@ -763,7 +721,7 @@ class IterativeImputer(_BaseImputer):
         #Turn np.array for transform to List of Lists
         #Samples turn to columns , and columns to rows.
 
-        X=np.transpose(super()._concatenate_indicator(Xt, X_indicator)).tolist()
+        X=super()._concatenate_indicator(Xt, X_indicator)
 
         return X
 
@@ -784,12 +742,6 @@ class IterativeImputer(_BaseImputer):
              The imputed input data.
         """
         check_is_fitted(self)
-
-        #Code by George Paterakis
-        #List of Lists -->> np.array with samples as rows and features as columns.
-        X=np.transpose(np.array(X))
-
-
 
         X, Xt, mask_missing_values, complete_mask = self._initial_imputation(X)
 
@@ -822,14 +774,9 @@ class IterativeImputer(_BaseImputer):
 
         Xt[~mask_missing_values] = X[~mask_missing_values]
 
+        X= super()._concatenate_indicator(Xt, X_indicator)
 
-        #Code by George Paterakis
-        #Turn np.array for transform to List of Lists
-        #Samples turn to columns , and columns to rows.
-
-        X=np.transpose(super()._concatenate_indicator(Xt, X_indicator)).tolist()
-
-        return X,self.new_names, self.new_vmaps
+        return X
 
     def fit(self, X, y=None):
         """Fits the imputer on X and return self.
@@ -849,7 +796,7 @@ class IterativeImputer(_BaseImputer):
         """
 
         self.fit_transform(X)
-        return 
+        return self
     
 
 

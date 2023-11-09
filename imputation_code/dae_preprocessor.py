@@ -5,30 +5,35 @@ from ConfigSpace.configuration_space import ConfigurationSpace
 from typing import Optional
 from pprint import pprint
 import autosklearn.classification
-from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from imputation_code.dae import DAE
+from ConfigSpace.hyperparameters import (
+    UniformIntegerHyperparameter,
+    CategoricalHyperparameter,
+)
 
-
-class ScalingPreprocessing(AutoSklearnPreprocessingAlgorithm):
-    def __init__(self, **kwargs):
+class DAEProcessor(AutoSklearnPreprocessingAlgorithm):
+    def __init__(self,dropout,theta, **kwargs):
+        self.dropout = dropout
+        self.theta = theta
         """This preprocessors does not change the data"""
         # Some internal checks makes sure parameters are set
         for key, val in kwargs.items():
             setattr(self, key, val)
 
     def fit(self, X, Y=None):
-        self.scaler = StandardScaler()
-        self.scaler.fit(X)
+        self.imputer = DAE(parameters={'dropout':self.dropout, 'theta': self.theta}).fit(X)
         return self
 
     def transform(self, X):
-        X = self.scaler.transform(X)
+        X = self.imputer.transform(X)
         return X
 
     @staticmethod
     def get_properties(dataset_properties=None):
         return {
-            "shortname": "ScalingPreprocessor",
-            "name": "ScalingPreprocessor",
+            "shortname": "DAEProcessor",
+            "name": "DAE Processor",
             "handles_regression": True,
             "handles_classification": True,
             "handles_multiclass": True,
@@ -43,4 +48,8 @@ class ScalingPreprocessing(AutoSklearnPreprocessingAlgorithm):
     def get_hyperparameter_search_space(
         feat_type: Optional[FEAT_TYPE_TYPE] = None, dataset_properties=None
     ):
-        return ConfigurationSpace()  # Return an empty configuration as there is None
+        cs = ConfigurationSpace()
+        theta = CategoricalHyperparameter(name="theta", choices=[5,7,10])
+        dropout = CategoricalHyperparameter(name="dropout", choices=[0.25,0.4,0.5])
+        cs.add_hyperparameters([theta,dropout])
+        return cs  # Return an empty configuration as there is None
