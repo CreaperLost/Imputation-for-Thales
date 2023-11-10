@@ -8,6 +8,9 @@ from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 import pandas as pd
 from generate_missing_values import generate_mcar_missing_values
+from imputation_code.mm_preprocessor import MeanModePreprocessor
+from imputation_code.dae_preprocessor import DAEProcessor
+from imputation_code.mf_preprocessor import MissForestProcessor
 
 
 breast_data = pd.read_csv('datasets/breast-w.csv')
@@ -33,68 +36,86 @@ Diabetes_data.loc[:,cardio_cols] = generate_mcar_missing_values(Diabetes_data.lo
 breast_data.loc[:,breast_cols] = generate_mcar_missing_values(breast_data.loc[:,breast_cols], 0.25).copy()
 
 
-
 # Define the preprocessing steps
 scaler = StandardScaler()
-feature_selector = SelectKBest(f_classif, k=2)
+
+
+imputation_methods = [
+    {
+        'name':'mean',
+        'model': MeanModePreprocessor,
+        'params': []
+    },
+    {
+        'name':'missforest',
+        'model': MissForestProcessor,
+        'params': [10, 20]
+    },
+    {
+        'name':'dae',
+        'model': DAEProcessor,
+        'params': [(0.25, 5) ,(0.25, 7), (0.25, 10),
+                   (0.4, 5)  ,(0.4, 7),  (0.4, 10),
+                   (0.5, 5)  ,(0.5, 7),  (0.5, 10)]
+    }
+]
 
 # Define the modeling algorithms and their hyperparameters for GridSearchCV
 models = [
     {
         'name': 'RandomForest',
-        'model': RandomForestClassifier(),
-        'params': {
-            'model__n_estimators': [100],
-            'model__max_depth': [None, 10, 20]
-        }
-    },
-    {
-        'name': 'GradientBoosting',
-        'model': GradientBoostingClassifier(),
-        'params': {
-            'model__n_estimators': [50, 100, 200],
-            'model__learning_rate': [0.01, 0.1, 0.2]
-        }
+        'model': RandomForestClassifier,
+        'params': [
+            (100,10), (100,20), (100,None)
+        ]
     },
     {
         'name': 'SVM',
-        'model': SVC(),
-        'params': {
-            'model__C': [0.1, 1, 10],
-            'model__kernel': ['linear', 'rbf']
-        }
+        'model': SVC,
+        'params': [
+            ('linear',0.1),('linear',1),('linear',10),
+            ('rbf',0.1),('rbf',1),('rbf',10),
+        ]
     }
 ]
 
+
+def find_imputation_model(imp_name, imp_model, imp_param):
+    if imp_name == 'mean':
+        return imp_model()
+    elif imp_name == 'missforest':
+        return imp_model(max_depth = imp_param)
+    else:
+        return imp_model(parameters = {'dropout':imp_param[0], 'theta':imp_param[1]})
+
 # Create a pipeline with preprocessing steps and modeling algorithm
 results = []
-for model_info in models:
-    model = model_info['model']
-    params = model_info['params']
-    name = model_info['name']
 
-    # Create a pipeline
-    pipeline = Pipeline([
-        ('scaler', scaler),
-        ('feature_selector', feature_selector),
-        ('model', model)
-    ])
+for imp_method in imputation_methods:
+    imp_name = imp_method['name']
+    imp_model = imp_method['model']
+    imp_params = imp_params['params']
 
-    # Perform hyperparameter optimization using GridSearchCV
-    grid_search = GridSearchCV(pipeline, params, cv=5, n_jobs=-1)
-    grid_search.fit(X_train, y_train)
+    for imp_param in imp_params:
 
-    # Store the best model and its performance
-    best_model = grid_search.best_estimator_
-    best_score = grid_search.best_score_
-    test_score = best_model.score(X_test, y_test)
+        imp = find_imputation_model(imp_name, imp_model, imp_params)
+        print(f'{imp_name, imp_model, imp_params,imp}')
 
-    results.append({
-        'name': name,
-        'best_model': best_model,
-        'best_score': best_score,
-        'test_score': test_score
-    })
+        for model_info in models:
+
+            model = model_info['model']
+            model_params = model_info['params']
+            model_name = model_info['name']
+
+            for model_param in model_params:
+                    
+                imp = imp_model(model_name, model, imp_param)
+                # Create a pipeline
+                pipeline = Pipeline([
+                            ('scaler', scaler),
+                            ('imputation',imp)
+                            ('model', model)])
+
 
 # Print the results
 for result in results:
