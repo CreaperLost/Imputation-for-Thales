@@ -33,8 +33,9 @@ class Autoencoder(nn.Module):
         )
 
     def forward(self, x):
-
+        
         x = x.view(-1, self.dim)
+        
         x_missed = self.drop_out(x)
 
         z = self.encoder(x_missed)
@@ -71,13 +72,15 @@ class DAE:
 
 
         self.dim = X.shape[1]
-
-        pd.DataFrame([self.dim]).to_csv('dim.csv')
+        
 
         X_filled = X.copy()
-        self.initial_imputer_Mean = SimpleImputer(missing_values=self.missing_values,strategy='mean')
+
+        
+        self.initial_imputer_Mean = SimpleImputer(missing_values=self.missing_values,strategy='constant',fill_value=0)
         self.initial_imputer_Mean.fit(X)
         X_filled = self.initial_imputer_Mean.transform(X)
+
         return X_filled
 
 

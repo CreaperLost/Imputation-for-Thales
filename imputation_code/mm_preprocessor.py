@@ -16,7 +16,7 @@ class MeanModePreprocessor(AutoSklearnPreprocessingAlgorithm):
             setattr(self, key, val)
 
     def fit(self, X, Y=None):
-        self.imputer = SimpleImputer(strategy='mean').fit(X)
+        self.imputer = SimpleImputer(strategy='constant',fill_value=0).fit(X)
         return self
 
     def transform(self, X):

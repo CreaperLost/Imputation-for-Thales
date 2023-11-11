@@ -11,6 +11,7 @@ from ConfigSpace.hyperparameters import (
     UniformIntegerHyperparameter,
     CategoricalHyperparameter,
 )
+import pandas as pd
 
 class DAEProcessor(AutoSklearnPreprocessingAlgorithm):
     def __init__(self,dropout,theta, **kwargs):
@@ -26,8 +27,10 @@ class DAEProcessor(AutoSklearnPreprocessingAlgorithm):
         return self
 
     def transform(self, X):
-        X = self.imputer.transform(X)
-        return X
+        
+        X_new = self.imputer.transform(X)
+        
+        return X_new
 
     @staticmethod
     def get_properties(dataset_properties=None):

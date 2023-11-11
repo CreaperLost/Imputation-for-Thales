@@ -6,7 +6,7 @@ from typing import Optional
 from pprint import pprint
 import autosklearn.classification
 from sklearn.preprocessing import StandardScaler
-
+import pandas as pd
 
 class ScalingPreprocessing(AutoSklearnPreprocessingAlgorithm):
     def __init__(self, **kwargs):
@@ -18,11 +18,12 @@ class ScalingPreprocessing(AutoSklearnPreprocessingAlgorithm):
     def fit(self, X, Y=None):
         self.scaler = StandardScaler()
         self.scaler.fit(X)
+        
         return self
 
     def transform(self, X):
-        X = self.scaler.transform(X)
-        return X
+        X_new = self.scaler.transform(X)
+        return X_new
 
     @staticmethod
     def get_properties(dataset_properties=None):

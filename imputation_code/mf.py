@@ -255,7 +255,7 @@ class IterativeImputer(_BaseImputer):
         self.min_impurity_decrease = parameters.get("min_impurity_decrease",0.0)
         self.bootstrap = parameters.get("bootstrap",True)
         self.oob_score = parameters.get("oob_score",False)
-        self.n_jobs = parameters.get("n_jobs",-1)
+        self.n_jobs = parameters.get("n_jobs",1)
         self.random_state = parameters.get("random_state",None)
         self.verbose = parameters.get("verbose",0)
         self.warm_start = parameters.get("warm_start",False)
@@ -540,7 +540,7 @@ class IterativeImputer(_BaseImputer):
         #Code by George Paterakis
         #Mean Impute continous , Mode Impute Categorical
 
-        self.initial_imputer_Mean = SimpleImputer(missing_values=self.missing_values,strategy='mean')
+        self.initial_imputer_Mean = SimpleImputer(missing_values=self.missing_values,strategy='constant',fill_value=0)
         X_filled = self.initial_imputer_Mean.fit_transform(X)
         valid_mask_stats = self.initial_imputer_Mean.statistics_
            
