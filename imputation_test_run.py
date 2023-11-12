@@ -7,18 +7,20 @@ from generate_missing_values import generate_mcar_missing_values
 from run_autosklearn import AutoML
 
 
-breast_data = pd.read_csv('datasets/breast-w.csv')
-Diabetes_data = pd.read_csv('datasets/Diabetes.csv')
+breast_data = pd.read_csv('missing_datasets/breast.csv')
+Diabetes_data = pd.read_csv('missing_datasets/diabetes.csv')
 
 
-print(Diabetes_data['is_anomaly'].value_counts())
+# Find the feature's names.
+cardio_cols = [i for i in list(Diabetes_data.columns) if i != 'is_anomaly']
+breast_cols = [i for i in list(breast_data.columns) if i != 'is_anomaly']
 
 print('Running the diabetes data')
 AutoML(Diabetes_data.loc[:,cardio_cols].to_numpy(), Diabetes_data.loc[:,'is_anomaly'].to_numpy(),5)
 
 
 print('Running the breast data')
-print(breast_data['is_anomaly'].value_counts())
+
 
 AutoML(breast_data.loc[:,breast_cols].to_numpy(), breast_data.loc[:,'is_anomaly'].to_numpy(),5)
 
