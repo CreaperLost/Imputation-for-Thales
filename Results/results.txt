@@ -1,0 +1,36 @@
+ DIABETES
+ 
+  Dataset name: 36d39a34-8193-11ee-96ba-8f0a5d598b22
+  Metric: auc
+  Best validation score: 0.538049
+  Number of target algorithm runs: 158
+  Number of successful target algorithm runs: 157
+  Number of crashed target algorithm runs: 0
+  Number of target algorithms that exceeded the time limit: 1
+  Number of target algorithms that exceeded the memory limit: 0
+
+Lowest loss: 0.46195080688045476
+Best configuration: {'balancing:strategy': 'weighting', 'classifier:__choice__': 'random_forest', 'data_preprocessor:__choice__': 'ScalingPreprocessing', 'feature_preprocessor:__choice__': 'MeanModePreprocessor', 'classifier:random_forest:bootstrap': 'False', 'classifier:random_forest:criterion': 'gini', 'classifier:random_forest:max_depth': 'None', 'classifier:random_forest:max_features': 0.9125658272719032, 'classifier:random_forest:max_leaf_nodes': 'None', 'classifier:random_forest:min_impurity_decrease': 0.0, 'classifier:random_forest:min_samples_leaf': 9, 'classifier:random_forest:min_samples_split': 14, 'classifier:random_forest:min_weight_fraction_leaf': 0.0}
+MeanModePreprocessor
+
+
+
+
+BREAST DATA
+
+Running the breast data
+auto-sklearn results:
+  Dataset name: fcdce9de-81a3-11ee-96ba-8f0a5d598b22
+  Metric: auc
+  Best validation score: 0.755489
+  Number of target algorithm runs: 118
+  Number of successful target algorithm runs: 117
+  Number of crashed target algorithm runs: 0
+  Number of target algorithms that exceeded the time limit: 1
+  Number of target algorithms that exceeded the memory limit: 0
+
+Lowest loss: 0.24451096364920624
+Best configuration: {'balancing:strategy': 'weighting', 'classifier:__choice__': 'random_forest', 'data_preprocessor:__choice__': 'ScalingPreprocessing', 'feature_preprocessor:__choice__': 'MissForestProcessor', 'classifier:random_forest:bootstrap': 'False', 'classifier:random_forest:criterion': 'gini', 'classifier:random_forest:max_depth': 'None', 'classifier:random_forest:max_features': 0.8377934026133855, 'classifier:random_forest:max_leaf_nodes': 'None', 'classifier:random_forest:min_impurity_decrease': 0.0, 'classifier:random_forest:min_samples_leaf': 18, 'classifier:random_forest:min_samples_split': 11, 'classifier:random_forest:min_weight_fraction_leaf': 0.0, 'feature_preprocessor:MissForestProcessor:max_depth': 20}
+MissForestProcessor
+Depth : 20
+
