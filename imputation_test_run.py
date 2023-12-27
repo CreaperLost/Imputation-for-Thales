@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import autosklearn.classification
 from generate_missing_values import generate_mcar_missing_values
-from run_autosklearn import AutoML
+from automl import AutoML
 
 
 breast_data = pd.read_csv('missing_data/breast.csv')
